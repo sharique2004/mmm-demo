@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drift — live demo</title>
+<style>
+  :root {
+    --bg:#0a0c10; --panel:#11141a; --panel2:#161a22; --line:#242a34;
+    --ink:#eceef1; --dim:#9aa3ad; --faint:#5b6570;
+    --amber:#f5a524; --red:#f0564a; --green:#43c98a; --blue:#66aef5; --violet:#a98cf5;
+    --falkor:#ff66b2; --guild:#8b7cf7;
+    --mono: ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  header{display:flex;align-items:center;gap:18px;padding:14px 22px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .logo{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .logo span{color:var(--amber)}
+  .sponsor{font-family:var(--mono);font-size:12px;letter-spacing:.06em;padding:7px 14px;border-radius:999px;border:1px solid var(--line)}
+  .sponsor b{font-size:14px;letter-spacing:0}
+  .sp-falkor{border-color:#ff66b255;background:#ff66b214}
+  .sp-falkor b{color:var(--falkor)}
+  .sp-guild{border-color:#8b7cf755;background:#8b7cf714}
+  .sp-guild b{color:var(--guild)}
+  .spacer{flex:1}
+  button{font:600 14px -apple-system,sans-serif;padding:11px 20px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
+  button:hover{border-color:var(--faint)}
+  button:disabled{opacity:.35;cursor:default}
+  button.primary{background:var(--amber);border-color:var(--amber);color:#141006}
+  button.reset{font-size:12px;padding:8px 12px;color:var(--dim)}
+
+  main{flex:1;display:grid;grid-template-columns:30% 1fr 34%;min-height:0}
+  .col{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  .col:last-child{border-right:none}
+  .colhead{padding:12px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:10px;flex:0 0 auto}
+  .colhead .brand{font-size:15px;font-weight:800;letter-spacing:0;text-transform:none}
+  .colbody{flex:1;overflow-y:auto;padding:16px 18px;min-height:0}
+
+  /* transcript */
+  .live-dot{width:9px;height:9px;border-radius:50%;background:var(--red);animation:blink 1.1s infinite;display:none}
+  @keyframes blink{50%{opacity:.2}}
+  .bubble{margin-bottom:14px;max-width:95%}
+  .bubble .who{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:3px}
+  .bubble .txt{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 13px;font-size:14.5px}
+  .bubble.priya .who{color:var(--blue)} .bubble.sam .who{color:var(--green)}
+  .meeting-title{font-family:var(--mono);font-size:12px;color:var(--amber);margin-bottom:14px}
+  .meeting-end{font-family:var(--mono);font-size:12px;color:var(--faint);margin:10px 0}
+
+  /* pipeline feed */
+  .card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px;background:var(--panel);animation:pop .25s ease}
+  @keyframes pop{from{transform:translateY(6px);opacity:0}}
+  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;display:block}
+  .card.stmt{border-left:none} .card.stmt .tag{color:var(--violet)}
+  .card.stmt .k{font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .card.issue{border-color:#f5a52466;background:#f5a5240d} .card.issue .tag{color:var(--amber)}
+  .card.conflict{border-color:#f0564a88;background:#f0564a12} .card.conflict .tag{color:var(--red)}
+  .card.conflict .ba{font-size:13.5px;margin-top:6px}
+  .card.conflict .ba b{color:var(--red)}
+  .card.sync{border-color:#43c98a55;background:#43c98a0d} .card.sync .tag{color:var(--green)}
+  .card a{color:var(--blue);text-decoration:none;font-size:13.5px}
+  .card a:hover{text-decoration:underline}
+  .chip{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 10px;border-radius:999px;background:#d93f0b26;color:#ff8c66;border:1px solid #d93f0b66;margin-top:6px}
+  .idle{color:var(--faint);font-size:14px;padding:24px 8px;text-align:center}
+
+  /* graph */
+  #gwrap{position:relative;flex:1;min-height:0}
+  #gcanvas{width:100%;height:100%;display:block}
+  .gstats{position:absolute;bottom:10px;left:14px;font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+  .glegend{position:absolute;top:10px;left:14px;display:flex;gap:12px;font-family:var(--mono);font-size:11px;color:var(--dim);flex-wrap:wrap}
+  .glegend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+
+  /* guild bar */
+  #guildbar{flex:0 0 auto;border-top:2px solid var(--guild);background:linear-gradient(0deg,#8b7cf716,transparent);padding:14px 22px;display:none;align-items:center;gap:18px}
+  #guildbar.show{display:flex}
+  #guildbar .gl{font-weight:800;font-size:18px;color:var(--guild);white-space:nowrap}
+  #guildbar .gs{font-family:var(--mono);font-size:12.5px;color:var(--dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #guildbar .status{font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:999px;white-space:nowrap}
+  .st-wait{background:#f5a52422;color:var(--amber);border:1px solid #f5a52466;animation:blink 1.4s infinite}
+  .st-ok{background:#43c98a22;color:var(--green);border:1px solid #43c98a66}
+  #approveBtn{background:var(--guild);border-color:var(--guild);color:#0e0b1e;font-weight:800}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">DRIFT<span>.</span></div>
+  <div class="sponsor sp-falkor">MEMORY&nbsp; <b>FalkorDB</b></div>
+  <div class="sponsor sp-guild">MOTION&nbsp; <b>Guild.ai</b></div>
+  <div class="spacer"></div>
+  <button id="btnMon" class="primary">▶&nbsp; Run Monday Standup</button>
+  <button id="btnTue" disabled>▶&nbsp; Run Tuesday Sync</button>
+  <button id="btnReset" class="reset">↺ reset</button>
+</header>
+
+<main>
+  <div class="col">
+    <div class="colhead"><span class="live-dot" id="liveDot"></span> LIVE MEETING</div>
+    <div class="colbody" id="transcript"><div class="idle">Hit <b>Run Monday Standup</b> — the meeting streams in live, like a transcription engine listening.</div></div>
+  </div>
+  <div class="col">
+    <div class="colhead">DRIFT PIPELINE — extract · remember · compare · act</div>
+    <div class="colbody" id="feed"><div class="idle">Statements, graph writes, conflicts, and GitHub actions appear here as they actually happen.</div></div>
+  </div>
+  <div class="col">
+    <div class="colhead"><span class="brand" style="color:var(--falkor)">FalkorDB</span> KNOWLEDGE GRAPH <span style="margin-left:auto;font-size:10px" id="gsource">localhost:6379 · graph "drift"</span></div>
+    <div id="gwrap">
+      <canvas id="gcanvas"></canvas>
+      <div class="glegend">
+        <span><i style="background:var(--blue)"></i>Person</span>
+        <span><i style="background:var(--green)"></i>Meeting</span>
+        <span><i style="background:var(--amber)"></i>Issue</span>
+        <span><i style="background:var(--violet)"></i>Statement</span>
+        <span><i style="background:var(--red);border-radius:1px;height:3px;width:12px;margin-top:3px"></i>SUPERSEDES</span>
+      </div>
+      <div class="gstats" id="gstats">empty — no meetings remembered yet</div>
+    </div>
+  </div>
+</main>
+
+<div id="guildbar">
+  <div class="gl">🛡 Guild.ai · governed session</div>
+  <div class="gs" id="guildInfo"></div>
+  <span class="status st-wait" id="guildStatus">HERALD DRAFTING…</span>
+  <a id="guildLink" target="_blank" rel="noopener"><button>Open session ↗</button></a>
+  <button id="approveBtn" disabled>✓ Approve &amp; post</button>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const feed = $('feed'), tr = $('transcript');
+let issueNo = null, sessionId = null, ranMonday = false;
+
+/* ---------------- transcript typing ---------------- */
+async function playTranscript(meeting) {
+  const data = await (await fetch('/api/transcript/' + meeting)).json();
+  tr.innerHTML = `<div class="meeting-title">● ${data.meta.title} — ${data.meta.date}</div>`;
+  $('liveDot').style.display = 'inline-block';
+  for (const seg of data.segments) {
+    const b = document.createElement('div');
+    b.className = 'bubble ' + seg.speaker.toLowerCase();
+    b.innerHTML = `<div class="who">${seg.ts} · ${seg.speaker}</div><div class="txt"></div>`;
+    tr.appendChild(b);
+    const txt = b.querySelector('.txt');
+    for (const w of seg.text.split(' ')) {
+      txt.textContent += w + ' ';
+      tr.scrollTop = tr.scrollHeight;
+      await new Promise(r => setTimeout(r, 55));
+    }
+    await new Promise(r => setTimeout(r, 320));
+  }
+  $('liveDot').style.display = 'none';
+  tr.insertAdjacentHTML('beforeend', '<div class="meeting-end">■ meeting ended — Drift is processing what was said…</div>');
+  tr.scrollTop = tr.scrollHeight;
+}
+
+/* ---------------- pipeline feed ---------------- */
+function card(html, cls) {
+  const d = document.createElement('div');
+  d.className = 'card ' + cls;
+  d.innerHTML = html;
+  feed.appendChild(d);
+  feed.scrollTop = feed.scrollHeight;
+  return d;
+}
+
+function handleLine(line) {
+  let m;
+  if (m = line.match(/^\[graph\] (\w+) → issue #(\d+) \((\w+)\): "(.+)"$/)) {
+    issueNo = +m[2];
+    card(`<span class="tag">stored in FalkorDB</span><b>${m[1]}</b> <span class="k">· ${m[3]} · issue #${m[2]}</span><div>${m[4]}</div>`, 'stmt');
+    refreshGraph();
+  } else if (m = line.match(/^\[herald\] no tracked issue.*filed GitHub issue #(\d+): "(.+)"$/)) {
+    issueNo = +m[1];
+    card(`<span class="tag">GitHub · new issue filed by Drift</span><b>#${m[1]} — ${m[2]}</b><br>
+         <a href="https://github.com/sharique2004/mmm-demo/issues/${m[1]}" target="_blank">open on GitHub ↗</a>`, 'issue');
+  } else if (m = line.match(/^\[historian\] CONFLICT on issue #(\d+): (.+)$/)) {
+    card(`<span class="tag">⚠ decision drift detected — graph memory vs. this meeting</span><b>${m[2]}</b><div class="ba" id="ba"></div>`, 'conflict');
+  } else if (m = line.match(/^\[historian\]\s+before: (.+)$/)) {
+    const ba = document.getElementById('ba'); if (ba) ba.innerHTML += `<b>Before:</b> ${m[1]}<br>`;
+  } else if (m = line.match(/^\[historian\]\s+after:\s+(.+)$/)) {
+    const ba = document.getElementById('ba'); if (ba) { ba.innerHTML += `<b>After:</b> ${m[1]}`; ba.removeAttribute('id'); }
+  } else if (m = line.match(/^\[herald\] Guild session started: (\S+) \(/)) {
+    sessionId = m[1];
+    $('guildbar').classList.add('show');
+    $('guildInfo').textContent = 'session ' + sessionId;
+    $('guildStatus').textContent = 'HERALD DRAFTING…';
+  } else if (m = line.match(/^\[herald\] session: (\S+)$/)) {
+    $('guildLink').href = m[1];
+  } else if (m = line.match(/^\[herald\] issue #(\d+) body updated/)) {
+    card(`<span class="tag">GitHub · issue body synced</span>The issue's <b>plan block now states the new plan</b> — the next developer reads Tuesday's reality, not Monday's.<br>
+         <a href="https://github.com/sharique2004/mmm-demo/issues/${m[1]}" target="_blank">see the updated issue ↗</a>`, 'sync');
+  } else if (line.match(/^\[herald\] label added/)) {
+    card(`<span class="tag">GitHub</span><span class="chip">decision-changed</span>`, 'sync');
+  } else if (m = line.match(/^\[graph\] SUPERSEDES: (\S+) → (\S+)/)) {
+    card(`<span class="tag" style="color:var(--falkor)">FalkorDB · lineage</span><span style="font-family:var(--mono);font-size:13px">(${m[1]})-[<b style="color:var(--red)">SUPERSEDES</b>]->(${m[2]})</span> — the graph remembers that this decision replaced the old one.`, 'stmt');
+    refreshGraph();
+  } else if (m = line.match(/^\[historian\] issue #\d+: first decision on record/)) {
+    card(`<span class="tag">historian</span>First decision on record for this issue — nothing to compare yet.`, 'stmt');
+  } else if (line.startsWith('__DONE__')) {
+    refreshGraph();
+    if (sessionId) watchApproval();
+  }
+}
+
+async function runMeeting(meeting) {
+  $('btnMon').disabled = $('btnTue').disabled = true;
+  if (feed.querySelector('.idle')) feed.innerHTML = '';
+  const lines = [];
+  let streamDone = false;
+  const es = new EventSource('/api/run/' + meeting);
+  es.onmessage = e => { const l = JSON.parse(e.data); lines.push(l); if (l.startsWith('__DONE__')) { es.close(); streamDone = true; } };
+  await playTranscript(meeting);            // type the meeting first…
+  while (!streamDone || lines.length) {     // …then play pipeline events, paced
+    if (lines.length) { handleLine(lines.shift()); await new Promise(r => setTimeout(r, 650)); }
+    else await new Promise(r => setTimeout(r, 150));
+  }
+  if (meeting === 'monday') { ranMonday = true; $('btnTue').disabled = false; }
+  else { $('btnMon').disabled = false; $('btnTue').disabled = !ranMonday; }
+}
+
+/* ---------------- Guild approval ---------------- */
+async function watchApproval() {
+  const btn = $('approveBtn');
+  $('guildStatus').textContent = 'AWAITING HUMAN APPROVAL';
+  btn.disabled = false;
+  btn.onclick = async () => {
+    btn.disabled = true;
+    $('guildStatus').textContent = 'APPROVED — POSTING…';
+    await fetch('/api/approve/' + sessionId, {method: 'POST'});
+    for (let i = 0; i < 30; i++) {
+      await new Promise(r => setTimeout(r, 4000));
+      const st = await (await fetch('/api/issue/' + issueNo)).json();
+      if (st.comments > 0) {
+        $('guildStatus').textContent = 'COMMENT POSTED';
+        $('guildStatus').className = 'status st-ok';
+        card(`<span class="tag" style="color:var(--guild)">Guild.ai · governed action complete</span>
+              Comment posted by <b>${st.last_comment_by}</b> — Guild's own GitHub credential, human-approved, fully audited.<br>
+              <a href="${st.last_comment_url}" target="_blank">read the comment ↗</a>`, 'sync');
+        return;
+      }
+    }
+  };
+}
+
+/* ---------------- FalkorDB graph ---------------- */
+const COLORS = {Person:'#66aef5', Meeting:'#43c98a', Issue:'#f5a524', Statement:'#a98cf5'};
+const RAD = {Person:15, Meeting:13, Issue:17, Statement:9};
+let nodes = [], edges = [], W = 0, H = 0;
+const canvas = $('gcanvas'), ctx = canvas.getContext('2d'), dpr = devicePixelRatio || 1;
+function resize() {
+  const r = $('gwrap').getBoundingClientRect();
+  W = r.width; H = r.height;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+}
+addEventListener('resize', resize); resize();
+
+async function refreshGraph() {
+  const data = await (await fetch('/api/graph')).json();
+  const old = Object.fromEntries(nodes.map(n => [n.id, n]));
+  nodes = data.nodes.map(n => old[n.id]
+    ? Object.assign(old[n.id], n)
+    : {...n, x: W/2 + (Math.random()-.5)*80, y: H/2 + (Math.random()-.5)*80, vx: 0, vy: 0});
+  const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+  edges = data.edges.map(e => ({...e, a: byId[e.s], b: byId[e.t]}));
+  const s = data.stats;
+  $('gstats').textContent = s.nodes
+    ? `${s.persons} people · ${s.meetings} meetings · ${s.issues} issue · ${s.statements} statements — ${s.nodes} nodes / ${s.edges} edges`
+    : 'empty — no meetings remembered yet';
+}
+
+function name(n) {
+  if (n.label === 'Person') return n.props.name;
+  if (n.label === 'Meeting') return n.props.title;
+  if (n.label === 'Issue') return '#' + n.props.number;
+  return n.props.kind || '';
+}
+function tickDraw() {
+  for (let i = 0; i < nodes.length; i++) for (let j = i+1; j < nodes.length; j++) {
+    const a = nodes[i], b = nodes[j];
+    let dx = b.x-a.x, dy = b.y-a.y, d2 = dx*dx+dy*dy || 1, d = Math.sqrt(d2);
+    const f = Math.min(2600/d2, 5); dx/=d; dy/=d;
+    a.vx -= dx*f; a.vy -= dy*f; b.vx += dx*f; b.vy += dy*f;
+  }
+  for (const e of edges) {
+    if (!e.a || !e.b) continue;
+    const dx = e.b.x-e.a.x, dy = e.b.y-e.a.y, d = Math.hypot(dx,dy)||1;
+    const f = (d - (e.type === 'SUPERSEDES' ? 160 : 100)) * .008;
+    e.a.vx += dx/d*f; e.a.vy += dy/d*f; e.b.vx -= dx/d*f; e.b.vy -= dy/d*f;
+  }
+  for (const n of nodes) {
+    n.vx += (W/2-n.x)*.0016; n.vy += (H/2-n.y)*.0022; n.vx *= .85; n.vy *= .85;
+    n.x = Math.max(26, Math.min(W-26, n.x+n.vx)); n.y = Math.max(26, Math.min(H-30, n.y+n.vy));
+  }
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  for (const e of edges) {
+    if (!e.a || !e.b) continue;
+    const hot = e.type === 'SUPERSEDES';
+    ctx.strokeStyle = hot ? '#f0564a' : '#2a3140'; ctx.lineWidth = hot ? 2.4 : 1.2;
+    ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke();
+    if (hot) { ctx.fillStyle = '#f0564a'; ctx.font = '700 10px ui-monospace';
+      ctx.fillText('SUPERSEDES', (e.a.x+e.b.x)/2+5, (e.a.y+e.b.y)/2-4); }
+  }
+  for (const n of nodes) {
+    ctx.beginPath(); ctx.arc(n.x, n.y, RAD[n.label]||10, 0, 7);
+    ctx.fillStyle = COLORS[n.label] || '#888'; ctx.fill();
+    ctx.strokeStyle = '#0a0c10'; ctx.lineWidth = 2; ctx.stroke();
+    const lbl = name(n);
+    if (lbl) { ctx.fillStyle = '#eceef1'; ctx.font = '600 11px -apple-system,sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText(lbl, n.x, n.y - (RAD[n.label]||10) - 6); }
+  }
+  requestAnimationFrame(tickDraw);
+}
+tickDraw(); refreshGraph();
+
+/* ---------------- controls ---------------- */
+$('btnMon').onclick = () => runMeeting('monday');
+$('btnTue').onclick = () => runMeeting('tuesday');
+$('btnReset').onclick = async () => {
+  if (!confirm('Reset the demo? (deletes the filed issue, wipes the graph)')) return;
+  $('btnReset').textContent = '…';
+  await fetch('/api/reset', {method: 'POST'});
+  location.reload();
+};
+</script>
+</body>
+</html>
