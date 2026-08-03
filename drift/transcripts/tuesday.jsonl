@@ -1,0 +1,9 @@
+{"type":"meta","meeting_id":"tue","title":"Tuesday Sync","date":"2026-08-04"}
+{"type":"segment","segment_id":"tue-s01","ts":"00:00:05","speaker":"Priya","text":"Afternoon — quick sync. Where did we land on the search fix?"}
+{"type":"segment","segment_id":"tue-s02","ts":"00:00:12","speaker":"Sam","text":"So, plot twist. I prototyped the GIN index last night. It helps cold lookups, but the twelve seconds are coming from the ranking pass — the index barely moves the needle."}
+{"type":"segment","segment_id":"tue-s03","ts":"00:00:31","speaker":"Priya","text":"So Monday's plan doesn't survive contact with reality."}
+{"type":"segment","segment_id":"tue-s04","ts":"00:00:37","speaker":"Sam","text":"Right. The real fix is precomputing rankings into a small search-cache service — nightly rebuild, incremental updates in between."}
+{"type":"segment","segment_id":"tue-s05","ts":"00:00:58","speaker":"Priya","text":"OK, change of plan then: drop the GIN-index approach and build the search-cache service. You're on incident rotation this week, so I'll take it over. New target: Wednesday the twelfth."}
+{"type":"segment","segment_id":"tue-s06","ts":"00:01:15","speaker":"Sam","text":"Deal. I'll hand you the prototype branch today."}
+{"type":"segment","segment_id":"tue-s07","ts":"00:01:22","speaker":"Priya","text":"And make sure the ticket reflects all of this — whoever picks it up next should not build that index."}
+{"type":"segment","segment_id":"tue-s08","ts":"00:01:31","speaker":"Sam","text":"It'll be updated before we're even off this call."}

@@ -31,8 +31,8 @@ transcripts (JSONL) ──► Scribe (Gemini, schema-locked JSON) ──► Falk
 
 ## Honest engineering notes
 
-- The three meetings are **scripted transcripts** (MeetingScribe-style output) with hand-written ground-truth fixtures — deterministic on stage, and the **live Gemini extraction path is real and verified** (run without `--fixtures`).
-- Sprint planning contains exactly two changed decisions and one consistent one; Drift flags **2/2 conflicts and stays silent on the control case**.
+- The meetings are **scripted transcripts** (MeetingScribe-style output) with hand-written ground-truth fixtures — deterministic on stage, and the **live Gemini extraction path is real and verified** (run without `--fixtures`).
+- The primary demo starts from an **empty world**: Monday's meeting *files* the GitHub issue; Tuesday's meeting changes the decision, and Drift edits the issue's plan block **and** posts the governed what-changed comment. An alternate three-meeting scenario (two conflicts + a correctly-silent control case) is included too.
 - Every sponsor integration is load-bearing: kill FalkorDB and there is no memory; kill Guild and nothing reaches GitHub.
 
 Built in one afternoon by **Sharique Khatri** with FalkorDB · Guild.ai · Gemini · GitHub.

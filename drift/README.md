@@ -18,19 +18,24 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # optionally add GEMINI_API_KEY and Guild trigger keys
 
-python seed.py              # creates the 4 demo issues on GitHub, writes issues.json,
-                            # seeds Issue nodes + full-text index into FalkorDB
-
-# The three meetings, in demo order:
-python pipeline.py ingest transcripts/m1-kickoff.jsonl --fixtures
-python pipeline.py ingest transcripts/m2-standup.jsonl --fixtures
-python pipeline.py ingest transcripts/m3-sprint-planning.jsonl --fixtures --live
+# PRIMARY DEMO — two live meetings, starting from an EMPTY world:
+python demo_reset.py                                              # clean slate
+python pipeline.py ingest transcripts/monday.jsonl  --fixtures --live
+python pipeline.py ingest transcripts/tuesday.jsonl --fixtures --live
 ```
 
-m1 loads the original plans, m2 adds consistent progress (no conflicts), m3 is
-the live meeting where two decisions flip (cache: Redis→in-memory LRU, Sam→Priya,
-Aug 10→Aug 14; oauth: Auth0→Clerk, Aug 20→Sept 1) while a third decision
-(offline mode) is correctly judged as *not* a conflict.
+**Monday Standup** (Priya + Sam, 8 lines of dialogue, streamed like live
+transcription): they decide *GIN index + hot-query cache, Sam owns it, Friday* —
+and Drift **files the GitHub issue itself**, plan block and all.
+**Tuesday Sync**: the prototype disproves the plan; Priya flips it to a
+search-cache service, takes it over, moves the date. Drift detects the conflict
+against Monday's memory, **edits the issue's plan block to the new reality**, and
+a governed Guild session posts the `decision-changed` comment (after your
+approval) explaining what changed, who said it, and why.
+
+There is also a richer three-meeting scenario (m1-kickoff / m2-standup /
+m3-sprint-planning, pre-seeded issues via `python seed.py`, two conflicts + a
+correctly-silent control case) — same pipeline, kept as an alternate demo.
 
 Drop `--fixtures` to run real Gemini extraction (needs `GEMINI_API_KEY`).
 Inspect memory anytime:

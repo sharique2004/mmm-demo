@@ -1,0 +1,32 @@
+{
+  "statements": [
+    {
+      "segment_id": "tue-s02",
+      "speaker": "Sam",
+      "topic": "search timeouts",
+      "issue_slug": "search",
+      "issue_number": null,
+      "claim": "The GIN index prototype barely helps: the 12-second latency comes from the ranking pass, not cold lookups",
+      "kind": "update"
+    },
+    {
+      "segment_id": "tue-s05",
+      "speaker": "Priya",
+      "topic": "search timeouts",
+      "issue_slug": "search",
+      "issue_number": null,
+      "claim": "Drop the GIN-index approach and build a search-cache service with precomputed rankings (nightly rebuild plus incremental updates); Priya takes ownership from Sam; new target Wednesday Aug 12",
+      "kind": "decision",
+      "updated_plan": "**Plan:** dedicated search-cache service — precomputed rankings, nightly rebuild + incremental updates · **Owner:** Priya · **Target:** Wed Aug 12\n\n_Plan updated automatically by Drift from Tuesday Sync (2026-08-04) — see the `decision-changed` comment below for what changed and why._"
+    },
+    {
+      "segment_id": "tue-s06",
+      "speaker": "Sam",
+      "topic": "search timeouts",
+      "issue_slug": "search",
+      "issue_number": null,
+      "claim": "Sam will hand over the GIN-index prototype branch to Priya today",
+      "kind": "update"
+    }
+  ]
+}

@@ -87,6 +87,18 @@ def resolve_issue_number(stmt: dict, issues_map: dict[str, int], memory: Memory)
     return memory.find_issue(stmt.get("topic", ""))
 
 
+def create_new_issue(spec: dict, memory: Memory, issues_map: dict[str, int]) -> int:
+    """File a GitHub issue for work that was decided in a meeting but isn't tracked yet."""
+    github_tools.ensure_labels()
+    number = github_tools.create_issue(spec["title"], spec["body"], labels=("from-meeting",))
+    issues_map[spec["slug"]] = number
+    (ROOT / "issues.json").write_text(json.dumps(issues_map, indent=2), encoding="utf-8")
+    memory.upsert_issue(number, github_tools.REPO, spec["title"], spec["slug"])
+    print(f'[herald] no tracked issue for this work — filed GitHub issue #{number}: "{spec["title"]}"')
+    print(f"[herald]   https://github.com/{github_tools.REPO}/issues/{number}")
+    return number
+
+
 # ------------------------------------------------------------- historian ----
 
 # Deterministic fallback judge, used ONLY in fixtures mode when Gemini is
@@ -147,9 +159,18 @@ def cmd_ingest(args: argparse.Namespace) -> None:
 
     print(f'[scribe] meeting {meeting_id} — "{meeting_title}" ({meeting_date}) · {len(segments)} segments')
     if args.live:
+        # Live-transcription effect: words arrive as they are "spoken".
+        print(f"[scribe] ● LIVE — transcribing {meeting_title}…\n")
         for seg in segments:
-            print(f'[scribe]   {seg["ts"]} {seg["speaker"]}: {seg["text"]}')
-            time.sleep(0.5)
+            sys.stdout.write(f'  {seg["ts"]}  {seg["speaker"]:>5}  ')
+            sys.stdout.flush()
+            for word in seg["text"].split():
+                sys.stdout.write(word + " ")
+                sys.stdout.flush()
+                time.sleep(0.045)
+            sys.stdout.write("\n")
+            time.sleep(0.3)
+        print(f"\n[scribe] ■ meeting ended — processing what was said\n")
 
     issues_map = load_issues_map()
     if args.fixtures and not issues_map:
@@ -165,6 +186,7 @@ def cmd_ingest(args: argparse.Namespace) -> None:
         print(f"[scribe] {len(statements)} statements extracted")
 
     memory = make_memory()
+    memory.ensure_indexes()
 
     ingested = skipped = judged = conflicts = comments = sessions = 0
     seen_segment_ids: dict[str, int] = {}
@@ -184,6 +206,22 @@ def cmd_ingest(args: argparse.Namespace) -> None:
             stmt = {**stmt, "segment_id": f'{stmt["segment_id"]}.{count + 1}'}
 
         number = resolve_issue_number(stmt, issues_map, memory)
+        if number is None and stmt.get("new_issue"):
+            # Fixture-declared new work item: the meeting itself files the issue.
+            number = create_new_issue(stmt["new_issue"], memory, issues_map)
+        elif number is None and not args.fixtures and stmt["kind"] == "decision":
+            # Live path: a decision about untracked work also files an issue.
+            topic = stmt.get("topic", "").strip() or "untracked work item"
+            spec = {
+                "slug": "-".join(topic.lower().split())[:40],
+                "title": topic[:1].upper() + topic[1:][:90],
+                "body": (
+                    f"## Goal\n{stmt['claim']}\n\n"
+                    f"{github_tools.PLAN_OPEN}\n**Plan:** {stmt['claim']}\n{github_tools.PLAN_CLOSE}\n\n"
+                    f"_Filed by Drift from a meeting transcript._"
+                ),
+            }
+            number = create_new_issue(spec, memory, issues_map)
         if number is None:
             print(f'[scribe] SKIP "{stmt["topic"]}" ({stmt["speaker"]}): could not resolve to an issue')
             skipped += 1
@@ -254,17 +292,31 @@ def cmd_ingest(args: argparse.Namespace) -> None:
         else:
             try:
                 url = github_tools.post_comment(number, guild_trigger.build_comment(payload))
-                github_tools.add_label(number, "decision-changed")
                 comments += 1
                 print(f"[herald] posted directly to GitHub: {url}")
-                print("[herald] label added: decision-changed")
             except Exception as exc:
                 print(f"[herald] WARNING: direct post failed ({exc}) — continuing")
+        try:
+            github_tools.add_label(number, "decision-changed")
+            print("[herald] label added: decision-changed")
+        except Exception as exc:
+            print(f"[herald] WARNING: label add failed ({exc}) — continuing")
 
         latest = prior_da[-1]
         memory.mark_superseded(stmt["segment_id"], latest["segment_id"])
         print(f'[graph] SUPERSEDES: {stmt["segment_id"]} → {latest["segment_id"]} '
               f'({latest["date"]}: "{latest["text"]}")')
+
+        # Keep the issue body itself in sync: replace the drift:plan block so the
+        # next developer reads the CURRENT plan, not Monday's.
+        plan_md = stmt.get("updated_plan") or (
+            f"**Current plan (updated from {meeting_title}, {meeting_date}):** {verdict.after}"
+        )
+        try:
+            github_tools.update_plan_block(number, plan_md)
+            print(f"[herald] issue #{number} body updated — the stated plan now matches {meeting_title}")
+        except Exception as exc:
+            print(f"[herald] WARNING: body update failed ({exc}) — continuing")
 
     print()
     print(f'[scribe]    meeting "{meeting_title}" ingested — {ingested} statements, {skipped} skipped')

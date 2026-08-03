@@ -66,6 +66,37 @@ def add_label(issue_no: int, label: str) -> None:
     gh("api", f"repos/{REPO}/issues/{issue_no}/labels", "-f", f"labels[]={label}")
 
 
+def get_issue_body(issue_no: int) -> str:
+    """Fetch an issue's current markdown body ('' if empty)."""
+    out = gh("api", f"repos/{REPO}/issues/{issue_no}")
+    return json.loads(out).get("body") or ""
+
+
+def edit_issue_body(issue_no: int, body_md: str) -> None:
+    """Replace an issue's body."""
+    gh("api", "-X", "PATCH", f"repos/{REPO}/issues/{issue_no}", "-F", "body=@-", stdin=body_md)
+
+
+PLAN_OPEN, PLAN_CLOSE = "<!-- drift:plan -->", "<!-- /drift:plan -->"
+
+
+def update_plan_block(issue_no: int, plan_md: str) -> None:
+    """Replace (or append) the drift:plan marker block in an issue body.
+
+    The block is how Drift keeps the issue's stated plan in sync with the
+    latest meeting — the rest of the body is never touched.
+    """
+    body = get_issue_body(issue_no)
+    block = f"{PLAN_OPEN}\n{plan_md}\n{PLAN_CLOSE}"
+    if PLAN_OPEN in body and PLAN_CLOSE in body:
+        head, rest = body.split(PLAN_OPEN, 1)
+        _, tail = rest.split(PLAN_CLOSE, 1)
+        body = head + block + tail
+    else:
+        body = (body.rstrip() + "\n\n" if body.strip() else "") + block
+    edit_issue_body(issue_no, body)
+
+
 def list_issue_titles() -> dict[str, int]:
     """{title: number} of open issues in REPO (PRs excluded). Used for idempotent seeding."""
     out = gh("api", "--paginate", f"repos/{REPO}/issues?state=open&per_page=100")

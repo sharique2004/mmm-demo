@@ -1,0 +1,9 @@
+{"type":"meta","meeting_id":"mon","title":"Monday Standup","date":"2026-08-03"}
+{"type":"segment","segment_id":"mon-s01","ts":"00:00:04","speaker":"Priya","text":"Morning Sam — quick standup, just the two of us today. What's top of the list?"}
+{"type":"segment","segment_id":"mon-s02","ts":"00:00:11","speaker":"Sam","text":"Search. Workspaces over fifty thousand documents are timing out — twelve-second queries, and the support tickets are piling up."}
+{"type":"segment","segment_id":"mon-s03","ts":"00:00:26","speaker":"Priya","text":"Ouch. Do we actually know why it's that slow?"}
+{"type":"segment","segment_id":"mon-s04","ts":"00:00:33","speaker":"Sam","text":"It's the unindexed scan. I want to add a Postgres GIN index on the documents table and cache the hot queries. I can own it."}
+{"type":"segment","segment_id":"mon-s05","ts":"00:00:52","speaker":"Priya","text":"OK, decision: GIN index plus a hot-query cache, Sam owns it, and let's target Friday the seventh."}
+{"type":"segment","segment_id":"mon-s06","ts":"00:01:04","speaker":"Sam","text":"Works for me. I'll start with the index migration tomorrow morning."}
+{"type":"segment","segment_id":"mon-s07","ts":"00:01:12","speaker":"Priya","text":"File a ticket for it so it's tracked, alright?"}
+{"type":"segment","segment_id":"mon-s08","ts":"00:01:18","speaker":"Sam","text":"On it."}

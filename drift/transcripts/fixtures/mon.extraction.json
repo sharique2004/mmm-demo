@@ -1,0 +1,36 @@
+{
+  "statements": [
+    {
+      "segment_id": "mon-s05",
+      "speaker": "Priya",
+      "topic": "search timeouts",
+      "issue_slug": "search",
+      "issue_number": null,
+      "claim": "Fix search timeouts with a Postgres GIN index on documents plus a hot-query cache; Sam owns it; target Friday Aug 7",
+      "kind": "decision",
+      "new_issue": {
+        "slug": "search",
+        "title": "Fix search timeouts on large workspaces",
+        "body": "## Goal\nSearch on workspaces with 50k+ documents times out (12s+ queries) and support tickets are piling up.\n\n<!-- drift:plan -->\n**Plan:** Postgres GIN index on `documents` + hot-query cache · **Owner:** Sam · **Target:** Fri Aug 7\n<!-- /drift:plan -->\n\n- [ ] GIN index migration\n- [ ] Hot-query cache\n- [ ] Verify p95 < 500ms on a 50k-doc workspace\n\n_Filed by Drift from Monday Standup (2026-08-03)._"
+      }
+    },
+    {
+      "segment_id": "mon-s02",
+      "speaker": "Sam",
+      "topic": "search timeouts",
+      "issue_slug": "search",
+      "issue_number": null,
+      "claim": "Search on workspaces with 50k+ documents is timing out with 12-second queries and support tickets are piling up",
+      "kind": "update"
+    },
+    {
+      "segment_id": "mon-s06",
+      "speaker": "Sam",
+      "topic": "search timeouts",
+      "issue_slug": "search",
+      "issue_number": null,
+      "claim": "Sam will start with the GIN index migration tomorrow morning",
+      "kind": "update"
+    }
+  ]
+}
