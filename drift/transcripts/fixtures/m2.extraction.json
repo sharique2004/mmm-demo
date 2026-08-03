@@ -1,0 +1,31 @@
+{
+  "statements": [
+    {
+      "segment_id": "m2-s02",
+      "speaker": "Sam",
+      "topic": "cache layer",
+      "issue_slug": "cache",
+      "issue_number": null,
+      "claim": "Sam is benchmarking the Redis cache against replayed ingestion traffic with roughly 40 percent lower lookup latency; on track for Aug 10",
+      "kind": "update"
+    },
+    {
+      "segment_id": "m2-s05",
+      "speaker": "Marco",
+      "topic": "auth service OAuth2 migration",
+      "issue_slug": "oauth",
+      "issue_number": null,
+      "claim": "Auth0 tenant is set up, dev environment authenticates end to end, claims-to-scopes mapping underway; still tracking Aug 20",
+      "kind": "update"
+    },
+    {
+      "segment_id": "m2-s08",
+      "speaker": "Chen",
+      "topic": "rate limit public API",
+      "issue_slug": "ratelimit",
+      "issue_number": null,
+      "claim": "Chen asks whether public API rate limits will be per-key or per-org, since it affects mobile retry logic",
+      "kind": "question"
+    }
+  ]
+}

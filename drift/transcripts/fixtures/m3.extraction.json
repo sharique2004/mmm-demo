@@ -1,0 +1,31 @@
+{
+  "statements": [
+    {
+      "segment_id": "m3-s05",
+      "speaker": "Priya",
+      "topic": "cache layer",
+      "issue_slug": "cache",
+      "issue_number": null,
+      "claim": "Switch the cache layer from Redis to an in-memory LRU; Priya takes ownership from Sam; new target Aug 14",
+      "kind": "decision"
+    },
+    {
+      "segment_id": "m3-s09",
+      "speaker": "Marco",
+      "topic": "auth service OAuth2 migration",
+      "issue_slug": "oauth",
+      "issue_number": null,
+      "claim": "Drop Auth0 for the OAuth2 migration and switch to Clerk; cutover target moves to Sept 1",
+      "kind": "decision"
+    },
+    {
+      "segment_id": "m3-s13",
+      "speaker": "Priya",
+      "topic": "mobile offline mode",
+      "issue_slug": "offline",
+      "issue_number": null,
+      "claim": "The offline mode spec Chen drafted is approved as written; build starts next sprint with Chen leading, unchanged from the kickoff plan",
+      "kind": "decision"
+    }
+  ]
+}

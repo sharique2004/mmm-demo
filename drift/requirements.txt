@@ -1,0 +1,5 @@
+falkordb>=1.6.2
+google-genai>=2.16.0
+pydantic>=2.0
+requests>=2.31
+python-dotenv>=1.0

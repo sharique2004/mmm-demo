@@ -1,0 +1,142 @@
+﻿Memory Meets Motion  Hackathon Problem Statement
+Date
+	August 3, 2026
+	Venue
+	Frontier Tower, San Francisco
+	Format
+	8-hour build sprint
+	Track Partners
+	RocketRide.ai · Guild.ai · LaserData · FalkorDB
+	1. Theme
+Memory Meets Motion is about building AI systems that don’t just react  they remember and act.
+Most AI demos today are stateless: every prompt starts from zero. The next generation of agentic products needs two things working together:
+* Memory: Durable, structured, queryable context that persists across sessions, users, and time (facts, relationships, history, preferences).
+* Motion: The ability to actually do something with that memory: orchestrate tools, take real-time action, coordinate multiple agents, and respond to live data as it happens.
+Teams at this hackathon will build a product, agent, or workflow that demonstrates both halves of this idea working as one system  an AI that knows things and does things because of what it knows.
+2. Mandated Tech Stack
+Every submitted project must integrate all four of the following sponsor technologies in a meaningful way (not just an API key sitting unused  judges will specifically check for real usage of each). Below is what each one is for and how to slot it into your architecture.
+🧠 FalkorDB  The Memory Layer
+FalkorDB is a low-latency graph database purpose-built for AI memory and GraphRAG use cases (Cypher-based, built for fast multi-hop queries over knowledge graphs). Use it as the place where your agent’s “memory” actually lives.
+How to use it:
+* Model your domain as a graph  entities + relationships (e.g., User to Preference, Ticket to Resolution, Player to Move to Outcome).
+* Use it as the retrieval backend for RAG instead of (or alongside) a vector store  multi-hop graph traversal gives you relationship-aware context a flat vector search misses.
+* Write to it continuously as your agent operates, so memory compounds over the session instead of resetting.
+Helpful Links:
+https://github.com/FalkorDB/falkorDB
+https://github.com/FalkorDB/code-graph
+https://github.com/FalkorDB/graphrag-sdk
+https://github.com/FalkorDB/QueryWeaver
+
+🚀 RocketRide.ai  The Motion / Orchestration Layer
+RocketRide is the AI orchestration and agent-execution layer  it’s how your system turns “what the agent knows” into “what the agent does”: tool calls, multi-step task execution, API actions.
+How to use it:
+* Wire RocketRide as the execution engine that reads from FalkorDB memory and decides/executes the next action.
+* Use it to orchestrate calls to external tools/APIs (the actual “motion”  sending an email, booking something, updating a record, hitting a live data source).
+* If your project has multiple steps or tool calls chained together, this is the layer that sequences them.
+🧑‍🤝‍🧑 Guild.ai  The Multi-Agent / Collaboration Layer
+Guild.ai is where multiple agents (or agents + humans) coordinate on a task rather than one monolithic agent trying to do everything.
+How to use it:
+* Split your problem into specialist agents (e.g., a “researcher” agent, a “planner” agent, a “critic” agent) and use Guild.ai to coordinate handoffs between them.
+* Use it for human-in-the-loop moments  where your system should pause and route a decision to a person before acting.
+* Good fit anywhere your project benefits from division of labor instead of one giant prompt.
+📡 LaserData  The Real-Time Data Layer
+LaserData is your live/streaming data source  the signal that gives your agent something current to react to, rather than only static/historical memory.
+How to use it:
+* Feed live or fast-changing data into your system (market data, sensor/motion feeds, event streams, activity logs  whatever fits your idea) so the agent has something happening right now to respond to.
+* Pair it directly with FalkorDB: LaserData is the live input, FalkorDB is where that input gets persisted into long-term structured memory.
+Note on Judging: Judging will specifically look for load-bearing use of all four technologies. A one-line SDK import that’s never called again will not count.
+3. Reference Architecture
+This is the suggested shape most winning projects will follow:
+  
+
+Data flow in one line: LaserData brings in what’s happening now to FalkorDB remembers what’s ever happened to RocketRide decides and acts on both to Guild.ai coordinates the agents doing the deciding/acting to the user sees the result.
+4. Suggested Project Ideas
+Pick one, remix one, or bring your own. Every idea below is broken out by all four mandated technologies:
+Project Idea
+	LaserData
+	FalkorDB
+	RocketRide.ai
+	Guild.ai
+ 
+	Persistent Research Assistant
+	Streams new articles/papers/web signals on research topic
+	Stores findings as knowledge graph (claims, sources, contradictions)
+	Orchestrates fetch to read to summarize to store loop autonomously
+	Coordinates "researcher" and "fact-checker" agents before saving
+	Multi-Agent Customer Support Desk
+	Live stream of incoming support tickets/messages
+	Customer + ticket + resolution history graph
+	Executes resolution actions (send reply, update record, issue refund)
+	Coordinates triage to resolver to escalation agents with handoff logic
+	Live Market Signal Trader (sim)
+	Streams simulated live market ticks/price data
+	Tracks positions, past trades, and decision rationale graph
+	Executes rules-based strategy against incoming ticks
+	Splits "signal analyst" and "risk manager" agents to agree on trades
+	AI Study Companion
+	Live feed of quiz/practice results as student works
+	Graph of topics, weak areas, and mastery over weeks
+	Auto-generates and schedules next practice session
+	Coordinates "tutor" and "quiz generator" agents
+	Fraud/Anomaly Detection Graph Agent
+	Streams live transaction events
+	Models entity relationships (accounts, devices, merchants)
+	Triggers alerts or holds transactions in real time
+	Coordinates "detector" agent and "human-review" hand-off agent
+	Recruiting Copilot
+	Live stream of new applications/candidate activity
+	Maps candidate–skill–role relationships across pipeline
+	Executes outreach and scheduling actions
+	Runs "sourcer" + "screener" + "scheduler" agent trio
+	Motion-Aware Fitness Coach
+	Ingests live wearable/motion sensor data
+	Builds long-term fitness/health graph per user
+	Adjusts and pushes coaching plan in real time
+	Coordinates "coach" and "physio/safety" agents (can veto overtraining)
+	Personal Finance Memory Agent
+	Live spend/price/market feeds
+	Remembers spending patterns and goals over time as graph
+	Nudges or auto-executes budgeting actions
+	Coordinates "budget planner" and "spending watchdog" agents
+	Legal/Contract Research Agent
+	Streams newly filed documents or incoming contracts
+	Graph of clauses, precedents, and obligations
+	Automates document assembly and redline actions
+	Splits research vs. drafting agents with review agent step
+	Supply Chain Control Tower
+	Live shipment/IoT/logistics event feed
+	Models supplier/route/inventory graph
+	Auto-reroutes shipments or flags disruptions
+	Coordinates "risk" and "ops" agents negotiating responses
+	Event Networking Matchmaker
+	Live attendee check-in / location / interest-tap data
+	Attendee interest and connection graph
+	Sends real-time "you should meet X" nudges
+	Coordinates "matchmaker" and "icebreaker" agents
+	Multi-Agent Game NPCs
+	Live game-state/player-action event stream
+	NPCs remember prior player interactions as graph
+	Drives NPC behavior/actions based on memory + live state
+	Coordinates NPCs as a "guild" of characters with distinct roles
+	Smart Home / IoT Orchestrator
+	Streams live sensor events (motion, temp, door/window)
+	Remembers household routines and preferences as graph
+	Executes actual automations (lights, locks, thermostat)
+	Arbitrates conflicting requests between household users/agents
+	AI Hackathon Judge Assistant
+	Ingests live submission data as teams push code/demos
+	Builds project/criteria/score graph
+	Compiles and surfaces final rankings
+	Runs specialist judging agents per category debating close calls
+	Incident Response Copilot
+	Live alert/monitoring stream
+	Historical incident/runbook graph
+	Executes actual remediation action
+	Coordinates "diagnose" and "remediate" agents with human gate
+	5. Setup Checklist
+Have this done before the event starts  8 hours goes fast, don’t burn the first one on account creation.
+* [ ] RocketRide.ai: Create an account and generate an API key
+* [ ] Guild.ai: Create an account and get workspace/API access
+* [ ] FalkorDB: Create an instance (cloud or local Docker) and confirm connection string
+* [ ] LaserData: Create the Free Tier cloud account or run the local stack using Laser Stack. Read Laser Stack quickstart docs here. Join our discord channel, for questions or getting help as you build https://discord.gg/QXVbqWxHHb 
+Questions on any of the four sponsor tools during the event should go to that sponsor’s table/mentor  this document gives the shape of what’s expected, but each partner’s own docs are the source of truth for exact SDK syntax and current API surface.

@@ -1,0 +1,336 @@
+{
+"nodes": [
+{
+"id": 0,
+"label": "Issue",
+"props": {
+"number": 1,
+"repo": "sharique2004/mmm-demo",
+"title": "Migrate auth service to OAuth2",
+"slug": "oauth"
+}
+},
+{
+"id": 1,
+"label": "Issue",
+"props": {
+"number": 2,
+"repo": "sharique2004/mmm-demo",
+"title": "Add cache layer for transcript ingestion",
+"slug": "cache"
+}
+},
+{
+"id": 2,
+"label": "Issue",
+"props": {
+"number": 3,
+"repo": "sharique2004/mmm-demo",
+"title": "Mobile offline mode for field agents",
+"slug": "offline"
+}
+},
+{
+"id": 3,
+"label": "Issue",
+"props": {
+"number": 4,
+"repo": "sharique2004/mmm-demo",
+"title": "Rate-limit the public API",
+"slug": "ratelimit"
+}
+},
+{
+"id": 4,
+"label": "Person",
+"props": {
+"name": "Marco"
+}
+},
+{
+"id": 5,
+"label": "Meeting",
+"props": {
+"id": "m1",
+"title": "Project Kickoff",
+"date": "2026-07-28"
+}
+},
+{
+"id": 6,
+"label": "Statement",
+"props": {
+"segment_id": "m1-s06",
+"text": "Migrate the auth service to OAuth2 using Auth0; Marco owns the migration; target Aug 20",
+"kind": "decision",
+"ts": "00:03:42"
+}
+},
+{
+"id": 7,
+"label": "Person",
+"props": {
+"name": "Priya"
+}
+},
+{
+"id": 8,
+"label": "Statement",
+"props": {
+"segment_id": "m1-s09",
+"text": "Use a Redis cache for transcript ingestion; Sam owns it; target Aug 10",
+"kind": "decision",
+"ts": "00:06:47"
+}
+},
+{
+"id": 9,
+"label": "Person",
+"props": {
+"name": "Chen"
+}
+},
+{
+"id": 10,
+"label": "Statement",
+"props": {
+"segment_id": "m1-s13",
+"text": "Chen is drafting the offline mode spec this week and will bring it to the team for review before any build work starts",
+"kind": "update",
+"ts": "00:09:38"
+}
+},
+{
+"id": 11,
+"label": "Person",
+"props": {
+"name": "Sam"
+}
+},
+{
+"id": 12,
+"label": "Meeting",
+"props": {
+"id": "m2",
+"title": "Eng Standup",
+"date": "2026-07-31"
+}
+},
+{
+"id": 13,
+"label": "Statement",
+"props": {
+"segment_id": "m2-s02",
+"text": "Sam is benchmarking the Redis cache against replayed ingestion traffic with roughly 40 percent lower lookup latency; on track for Aug 10",
+"kind": "update",
+"ts": "00:00:26"
+}
+},
+{
+"id": 14,
+"label": "Statement",
+"props": {
+"segment_id": "m2-s05",
+"text": "Auth0 tenant is set up, dev environment authenticates end to end, claims-to-scopes mapping underway; still tracking Aug 20",
+"kind": "update",
+"ts": "00:02:05"
+}
+},
+{
+"id": 15,
+"label": "Statement",
+"props": {
+"segment_id": "m2-s08",
+"text": "Chen asks whether public API rate limits will be per-key or per-org, since it affects mobile retry logic",
+"kind": "question",
+"ts": "00:03:58"
+}
+},
+{
+"id": 16,
+"label": "Meeting",
+"props": {
+"id": "m3",
+"title": "Sprint Planning",
+"date": "2026-08-03"
+}
+},
+{
+"id": 17,
+"label": "Statement",
+"props": {
+"segment_id": "m3-s05",
+"text": "Switch the cache layer from Redis to an in-memory LRU; Priya takes ownership from Sam; new target Aug 14",
+"kind": "decision",
+"ts": "00:02:10"
+}
+},
+{
+"id": 18,
+"label": "Statement",
+"props": {
+"segment_id": "m3-s09",
+"text": "Drop Auth0 for the OAuth2 migration and switch to Clerk; cutover target moves to Sept 1",
+"kind": "decision",
+"ts": "00:03:56"
+}
+},
+{
+"id": 19,
+"label": "Statement",
+"props": {
+"segment_id": "m3-s13",
+"text": "The offline mode spec Chen drafted is approved as written; build starts next sprint with Chen leading, unchanged from the kickoff plan",
+"kind": "decision",
+"ts": "00:06:52"
+}
+}
+],
+"edges": [
+{
+"s": 4,
+"t": 6,
+"type": "SAID"
+},
+{
+"s": 4,
+"t": 14,
+"type": "SAID"
+},
+{
+"s": 4,
+"t": 18,
+"type": "SAID"
+},
+{
+"s": 6,
+"t": 0,
+"type": "ABOUT"
+},
+{
+"s": 6,
+"t": 5,
+"type": "IN_MEETING"
+},
+{
+"s": 7,
+"t": 8,
+"type": "SAID"
+},
+{
+"s": 7,
+"t": 17,
+"type": "SAID"
+},
+{
+"s": 7,
+"t": 19,
+"type": "SAID"
+},
+{
+"s": 8,
+"t": 1,
+"type": "ABOUT"
+},
+{
+"s": 8,
+"t": 5,
+"type": "IN_MEETING"
+},
+{
+"s": 9,
+"t": 10,
+"type": "SAID"
+},
+{
+"s": 9,
+"t": 15,
+"type": "SAID"
+},
+{
+"s": 10,
+"t": 2,
+"type": "ABOUT"
+},
+{
+"s": 10,
+"t": 5,
+"type": "IN_MEETING"
+},
+{
+"s": 11,
+"t": 13,
+"type": "SAID"
+},
+{
+"s": 13,
+"t": 1,
+"type": "ABOUT"
+},
+{
+"s": 13,
+"t": 12,
+"type": "IN_MEETING"
+},
+{
+"s": 14,
+"t": 0,
+"type": "ABOUT"
+},
+{
+"s": 14,
+"t": 12,
+"type": "IN_MEETING"
+},
+{
+"s": 15,
+"t": 3,
+"type": "ABOUT"
+},
+{
+"s": 15,
+"t": 12,
+"type": "IN_MEETING"
+},
+{
+"s": 17,
+"t": 1,
+"type": "ABOUT"
+},
+{
+"s": 17,
+"t": 8,
+"type": "SUPERSEDES"
+},
+{
+"s": 17,
+"t": 16,
+"type": "IN_MEETING"
+},
+{
+"s": 18,
+"t": 0,
+"type": "ABOUT"
+},
+{
+"s": 18,
+"t": 6,
+"type": "SUPERSEDES"
+},
+{
+"s": 18,
+"t": 16,
+"type": "IN_MEETING"
+},
+{
+"s": 19,
+"t": 2,
+"type": "ABOUT"
+},
+{
+"s": 19,
+"t": 16,
+"type": "IN_MEETING"
+}
+]
+}

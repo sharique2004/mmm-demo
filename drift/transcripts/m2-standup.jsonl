@@ -1,0 +1,11 @@
+{"type":"meta","meeting_id":"m2","title":"Eng Standup","date":"2026-07-31"}
+{"type":"segment","segment_id":"m2-s01","ts":"00:00:04","speaker":"Priya","text":"Standup. Usual order — Sam, Marco, Chen. Keep it tight, I have a vendor call at half past."}
+{"type":"segment","segment_id":"m2-s02","ts":"00:00:26","speaker":"Sam","text":"Cache layer is moving. The Redis benchmark harness is running against a replay of Monday's ingestion traffic, and early numbers show about a forty percent drop in lookup latency. On track for August 10."}
+{"type":"segment","segment_id":"m2-s03","ts":"00:01:31","speaker":"Priya","text":"Nice. Anything blocking you?"}
+{"type":"segment","segment_id":"m2-s04","ts":"00:01:44","speaker":"Sam","text":"Nope. Well — staging was down half of yesterday, but at this point that's weather, not news."}
+{"type":"segment","segment_id":"m2-s05","ts":"00:02:05","speaker":"Marco","text":"Auth migration: the Auth0 tenant is set up, the dev environment is authenticating against it end to end, and I've started mapping our session claims onto OAuth2 scopes. Still tracking August 20."}
+{"type":"segment","segment_id":"m2-s06","ts":"00:03:12","speaker":"Chen","text":"Did the tenant setup eat your Tuesday? It looked like it ate your Tuesday."}
+{"type":"segment","segment_id":"m2-s07","ts":"00:03:24","speaker":"Marco","text":"It ate my Tuesday and half my soul. The claims-mapping doc is forty pages. I regret nothing."}
+{"type":"segment","segment_id":"m2-s08","ts":"00:03:58","speaker":"Chen","text":"Nothing new from me on mobile since Monday. But a question on the rate limit proposal for the public API — are we thinking per-key limits or per-org limits? It changes how aggressive I make the mobile retry logic."}
+{"type":"segment","segment_id":"m2-s09","ts":"00:04:47","speaker":"Sam","text":"If it's per-key, I vote we exempt the ingestion service key, or the cache warm-up is going to trip it on day one."}
+{"type":"segment","segment_id":"m2-s10","ts":"00:05:10","speaker":"Priya","text":"Good question, no answer yet — rate limiting still has no owner, so park it and put it on the sprint planning agenda. Done. Go forth."}

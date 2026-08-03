@@ -1,0 +1,6 @@
+.DS_Store
+drift/.venv/
+drift/.env
+drift/__pycache__/
+drift/guild-agent-app/
+drift/site_graph.json

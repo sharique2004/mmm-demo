@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drift — your issues go stale the moment the meeting ends</title>
+<meta name="description" content="Drift listens to meetings, remembers every decision in a FalkorDB knowledge graph, and posts what-changed comments on GitHub issues through governed Guild.ai agent sessions.">
+<meta property="og:title" content="Drift — Memory Meets Motion">
+<meta property="og:description" content="Meetings change decisions. Issues go stale. Drift catches the drift — graph memory in, governed agent action out.">
+<style>
+  :root {
+    --bg: #0b0d10; --panel: #12151a; --panel2: #171b21; --line: #232830;
+    --ink: #e8eaed; --dim: #9aa3ad; --faint: #5c6570;
+    --amber: #f5a524; --red: #ef6351; --green: #4cc38a; --blue: #6cb2f7; --violet: #b28df7;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+  header.hero { padding: 110px 0 70px; border-bottom: 1px solid var(--line); }
+  .kicker { font-family: var(--mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); margin-bottom: 26px; }
+  h1 { font-size: clamp(44px, 7.5vw, 84px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 750; }
+  h1 .ghost { color: var(--faint); }
+  .sub { margin-top: 28px; font-size: clamp(18px, 2.2vw, 22px); color: var(--dim); max-width: 46ch; }
+  .sub strong { color: var(--ink); font-weight: 600; }
+  .cta-row { margin-top: 38px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 12px 22px; border-radius: 8px; font-weight: 600; font-size: 15px; }
+  .btn.primary { background: var(--amber); color: #14100a; }
+  .btn.primary:hover { text-decoration: none; filter: brightness(1.08); }
+  .btn.ghosted { border: 1px solid var(--line); color: var(--ink); }
+  .btn.ghosted:hover { text-decoration: none; border-color: var(--faint); }
+  section { padding: 84px 0; border-bottom: 1px solid var(--line); }
+  h2 { font-size: clamp(26px, 3.6vw, 38px); letter-spacing: -0.02em; margin-bottom: 14px; }
+  .lede { color: var(--dim); max-width: 62ch; margin-bottom: 40px; }
+  .lede strong { color: var(--ink); }
+
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .step { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+  .step .n { font-family: var(--mono); font-size: 12px; color: var(--amber); letter-spacing: .1em; }
+  .step h3 { margin: 10px 0 8px; font-size: 17px; }
+  .step p { font-size: 14.5px; color: var(--dim); }
+  .step code { font-family: var(--mono); font-size: 12.5px; color: var(--blue); }
+
+  #graphbox { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; position: relative; }
+  #graph { display: block; width: 100%; height: 560px; cursor: grab; }
+  .legend { position: absolute; top: 14px; left: 16px; display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 12px; color: var(--dim); background: rgba(11,13,16,.72); padding: 8px 12px; border-radius: 8px; backdrop-filter: blur(4px); }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+  .hint { position: absolute; bottom: 12px; right: 16px; font-family: var(--mono); font-size: 11.5px; color: var(--faint); }
+  #tip { position: absolute; pointer-events: none; background: #0d1014ee; border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 9px 12px; font-size: 13px; max-width: 340px; display: none; z-index: 5; line-height: 1.45; }
+  #tip .t { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
+
+  .term { background: #0a0c0f; border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; font-family: var(--mono); font-size: 13.2px; line-height: 1.75; overflow-x: auto; }
+  .term .p-scribe { color: var(--blue); } .term .p-hist { color: var(--violet); }
+  .term .p-herald { color: var(--green); } .term .p-graph { color: var(--faint); }
+  .term .hot { color: var(--red); font-weight: 700; }
+  .term .dim { color: var(--faint); }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+
+  .gh { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 14.5px; }
+  .gh .bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--dim); font-size: 13px; }
+  .gh .bar .av { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--amber), var(--red)); }
+  .gh .body { padding: 18px 20px; }
+  .gh .alert { border-left: 3px solid #7aa7ff; background: #7aa7ff14; padding: 12px 14px; border-radius: 6px; margin-bottom: 16px; }
+  .gh .alert .tag { color: #7aa7ff; font-weight: 700; font-size: 13px; }
+  .gh table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 13.5px; }
+  .gh th, .gh td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; vertical-align: top; }
+  .gh th { color: var(--dim); font-weight: 600; }
+  .gh .chg { font-family: var(--mono); font-size: 12.5px; background: #ffffff10; border-radius: 5px; padding: 2px 7px; }
+  .gh details { margin: 14px 0; border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; }
+  .gh summary { cursor: pointer; color: var(--dim); font-size: 13.5px; }
+  .gh blockquote { border-left: 3px solid var(--line); margin: 10px 0 4px; padding: 2px 0 2px 14px; color: var(--dim); }
+  .gh .foot { color: var(--faint); font-size: 12.5px; border-top: 1px solid var(--line); margin-top: 16px; padding-top: 12px; font-style: italic; }
+  .gh .label { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: #d93f0b26; color: #ff8c66; border: 1px solid #d93f0b66; }
+
+  .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 8px; }
+  .fnode { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; font-size: 13.5px; color: var(--dim); }
+  .fnode b { display: block; color: var(--ink); margin-bottom: 5px; font-size: 14.5px; }
+  .fnode.gate { border-color: var(--amber); }
+  .fnode.gate b { color: var(--amber); }
+
+  .stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+  .card b { font-size: 16px; }
+  .card p { font-size: 14px; color: var(--dim); margin-top: 8px; }
+  .card .role { font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); display: block; margin-bottom: 8px; }
+  footer { padding: 46px 0 70px; color: var(--faint); font-size: 14px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">Memory Meets Motion · Hackathon · San Francisco · Aug 3, 2026</div>
+    <h1>Your issues go stale<br><span class="ghost">the moment the meeting ends.</span><br>Drift catches it.</h1>
+    <p class="sub">Decisions change in meetings; GitHub issues keep saying what they said three weeks ago. <strong>Drift listens, remembers every decision as a knowledge graph, and posts what-changed comments on the issue itself</strong> — through a governed agent with a human approval gate.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="https://github.com/sharique2004/mmm-demo/issues" target="_blank" rel="noopener">See the live issues ↗</a>
+      <a class="btn ghosted" href="#graph-section">Explore the memory graph</a>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="lede">Three real meetings run through the pipeline. Two decisions quietly changed in the third one — Drift caught both, and only both. The consistent decision stayed silent.</p>
+    <div class="steps">
+      <div class="step"><div class="n">01 · LISTEN</div><h3>Scribe</h3><p>Transcript segments stream in. A Gemini agent with schema-locked JSON output extracts every <code>decision</code>, <code>update</code>, <code>assignment</code>, and <code>question</code> — speaker, topic, claim.</p></div>
+      <div class="step"><div class="n">02 · REMEMBER</div><h3>FalkorDB graph</h3><p>Statements land as <code>(Person)-[:SAID]→(Statement)-[:ABOUT]→(Issue)</code> in a FalkorDB knowledge graph. Memory compounds across meetings instead of resetting.</p></div>
+      <div class="step"><div class="n">03 · COMPARE</div><h3>Historian</h3><p>Each new decision is judged against the issue's full multi-hop decision history pulled with Cypher. Changed approach, owner, or deadline → conflict. Consistent progress → silence.</p></div>
+      <div class="step"><div class="n">04 · ACT</div><h3>Herald on Guild.ai</h3><p>A conflict spawns a governed Guild.ai session: the agent drafts the comment, <code>waits for human approval</code>, then posts via Guild's own GitHub credential. Every step audited.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="graph-section">
+  <div class="wrap">
+    <h2>The memory — real data, not a mockup</h2>
+    <p class="lede">This is the actual FalkorDB graph after the three demo meetings: <strong>4 people, 3 meetings, 4 issues, 9 statements</strong>. The red edges are <code style="font-family:var(--mono)">SUPERSEDES</code> — the exact moments a new decision overrode an old one.</p>
+    <div id="graphbox">
+      <canvas id="graph"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--blue)"></i>Person</span>
+        <span><i style="background:var(--green)"></i>Meeting</span>
+        <span><i style="background:var(--amber)"></i>Issue</span>
+        <span><i style="background:var(--violet)"></i>Statement</span>
+        <span><i style="background:var(--red);border-radius:1px;height:3px;width:14px;margin-top:4px"></i>SUPERSEDES</span>
+      </div>
+      <div class="hint">hover nodes · drag to nudge</div>
+      <div id="tip"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>The moment it caught the drift</h2>
+    <p class="lede">Verbatim pipeline output from the sprint-planning meeting. The kickoff said <strong>Redis cache, Sam, Aug 10</strong>. Three meetings of memory later, Priya changed all three — and the Historian knew.</p>
+    <div class="term">
+<span class="p-graph">[graph]</span> Priya → issue #2 (decision): "Switch the cache layer to an in-memory LRU; Priya takes it over from Sam; new target Aug 14"<br>
+<span class="p-hist">[historian]</span> issue #2: 2 prior statements (1 decisions/assignments) — judging the new decision…<br>
+<span class="p-hist">[historian]</span> <span class="hot">CONFLICT</span> on issue #2: approach Redis→in-memory LRU; owner Sam→Priya; deadline Aug 10→Aug 14<br>
+<span class="p-herald">[herald]</span> Guild session started: 019fc948-d9c9… <span class="dim">(approve in the Guild session UI)</span><br>
+<span class="p-herald">[herald]</span> posted to GitHub: <span class="dim">sharique2004/mmm-demo#2 · label: decision-changed</span><br>
+<span class="p-graph">[graph]</span> SUPERSEDES: m3-s05 → m1-s09 <span class="dim">(2026-07-28: "Use a Redis cache…; Sam owns it; target Aug 10")</span><br>
+<br>
+<span class="p-hist">[historian]</span> <span class="hot">CONFLICT</span> on issue #1: approach Auth0→Clerk; target Aug 20→Sept 1<br>
+<span class="p-graph">[graph]</span> Priya → issue #3 (decision): "Offline-mode spec approved as written; build starts next sprint"<br>
+<span class="p-hist">[historian]</span> issue #3: consistent with prior plan — <span class="dim">no conflict, no noise</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What the developer sees</h2>
+    <p class="lede">The next person who opens the issue doesn't build the wrong thing. This comment is live on <a href="https://github.com/sharique2004/mmm-demo/issues/2" target="_blank" rel="noopener">mmm-demo#2</a>.</p>
+    <div class="split">
+      <div class="gh">
+        <div class="bar"><span class="av"></span><b style="color:var(--ink)">drift</b> commented just now &nbsp;·&nbsp; <span class="label">decision-changed</span></div>
+        <div class="body">
+          <div class="alert"><span class="tag">❗ IMPORTANT</span><br><b>Decision changed in a later meeting.</b><br>The plan recorded on this issue was revised during <b>Sprint Planning</b> (2026-08-03).</div>
+          <table>
+            <tr><th></th><th>Decision</th></tr>
+            <tr><td><b>Before</b></td><td>Use a Redis cache for transcript ingestion with Sam as owner and a target date of August 10.</td></tr>
+            <tr><td><b>After</b></td><td>Switch the cache layer to an in-memory LRU with Priya taking ownership and a new target date of August 14.</td></tr>
+          </table>
+          <b>What changed:</b> <span class="chg">approach Redis→in-memory LRU; owner Sam→Priya; deadline Aug 10→Aug 14</span>
+          <details open><summary>Meeting excerpt</summary>
+            <blockquote>[00:02:10] <b>Priya:</b> Right. So here's the call: Redis is overkill for v1 — we're going with an in-memory LRU instead. I'm taking the cache work off Sam's plate so he can help Marco, and the new target is August 14.</blockquote>
+          </details>
+          <div class="foot">Meeting: Sprint Planning, 2026-08-03 · Detected by Drift Historian (FalkorDB graph diff) · via Guild.ai</div>
+        </div>
+      </div>
+      <div>
+        <div class="flow">
+          <div class="fnode"><b>1 · Graph diff fires</b>Python Historian detects the conflict and POSTs the payload to Guild's trigger API.</div>
+          <div class="fnode"><b>2 · Governed session</b>Guild spawns a session for the Herald agent. Every LLM call and tool call lands in the audit log.</div>
+          <div class="fnode gate"><b>3 · Human gate</b>The session pauses: "Post this to #2?" Nothing reaches GitHub without a yes.</div>
+          <div class="fnode"><b>4 · Guild posts it</b>Guild's own GitHub credential posts the comment — the pipeline never holds a GitHub token for writing.</div>
+        </div>
+        <p style="margin-top:18px; font-size:14px; color:var(--dim)">Kill the pipeline, restart it, ask the graph what Priya owes and when — <b style="color:var(--ink)">the memory survives</b>. That's the whole thesis: memory that compounds, motion that's accountable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Stack</h2>
+    <div class="stack">
+      <div class="card"><span class="role">Memory</span><b>FalkorDB</b><p>Property-graph DB (Cypher). Multi-hop decision history, full-text issue matching, SUPERSEDES lineage — queries a vector store can't answer.</p></div>
+      <div class="card"><span class="role">Motion · Governance</span><b>Guild.ai</b><p>Herald is a typed TypeScript agent deployed to Guild's control plane: API-triggered sessions, human-in-the-loop approval, credentialed GitHub tools, full event audit.</p></div>
+      <div class="card"><span class="role">Agent brains</span><b>Gemini 3.5 Flash</b><p>Schema-constrained JSON extraction and conflict judgment — zero parsing failures, deterministic pipeline behavior.</p></div>
+      <div class="card"><span class="role">Where it lands</span><b>GitHub Issues</b><p>No new tool to adopt. The issue thread becomes a living changelog of every discussion that touched it.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Drift — built in one afternoon at <b>Memory Meets Motion</b>, Frontier Tower SF</span>
+    <span>by Sharique Khatri · <a href="https://github.com/sharique2004/mmm-demo" target="_blank" rel="noopener">github.com/sharique2004/mmm-demo</a></span>
+  </div>
+</footer>
+
+<script>
+fetch('site_graph.json').then(r => r.json()).then(data => {
+  const canvas = document.getElementById('graph');
+  const tip = document.getElementById('tip');
+  const box = document.getElementById('graphbox');
+  const dpr = window.devicePixelRatio || 1;
+  let W, H;
+  function resize() {
+    W = box.clientWidth; H = 560;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.height = H + 'px';
+  }
+  resize(); window.addEventListener('resize', resize);
+  const ctx = canvas.getContext('2d');
+
+  const COLORS = { Person: '#6cb2f7', Meeting: '#4cc38a', Issue: '#f5a524', Statement: '#b28df7' };
+  const R = { Person: 14, Meeting: 12, Issue: 16, Statement: 8 };
+  const nodes = data.nodes.map(n => ({
+    ...n,
+    x: W/2 + (Math.random()-0.5)*W*0.6,
+    y: H/2 + (Math.random()-0.5)*H*0.6,
+    vx: 0, vy: 0, r: R[n.label] || 10
+  }));
+  const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+  const edges = data.edges.map(e => ({ ...e, a: byId[e.s], b: byId[e.t] }));
+
+  function name(n) {
+    const p = n.props;
+    if (n.label === 'Person') return p.name;
+    if (n.label === 'Meeting') return p.title;
+    if (n.label === 'Issue') return '#' + p.number;
+    return '';
+  }
+  function tipText(n) {
+    const p = n.props;
+    if (n.label === 'Person') return `<div class="t" style="color:${COLORS.Person}">Person</div>${p.name}`;
+    if (n.label === 'Meeting') return `<div class="t" style="color:${COLORS.Meeting}">Meeting</div>${p.title} · ${p.date}`;
+    if (n.label === 'Issue') return `<div class="t" style="color:${COLORS.Issue}">Issue #${p.number}</div>${p.title}`;
+    return `<div class="t" style="color:${COLORS.Statement}">Statement · ${p.kind}</div>${p.text}`;
+  }
+
+  let dragging = null, hover = null, mx = 0, my = 0;
+  function pointer(e) {
+    const rect = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+  }
+  canvas.addEventListener('mousemove', e => {
+    const p = pointer(e); mx = p.x; my = p.y;
+    if (dragging) { dragging.x = p.x; dragging.y = p.y; dragging.vx = dragging.vy = 0; return; }
+    hover = nodes.find(n => Math.hypot(n.x-p.x, n.y-p.y) < n.r + 6) || null;
+    canvas.style.cursor = hover ? 'pointer' : 'grab';
+    if (hover) {
+      tip.style.display = 'block';
+      tip.innerHTML = tipText(hover);
+      tip.style.left = Math.min(p.x + 18, W - 360) + 'px';
+      tip.style.top = (p.y + 14) + 'px';
+    } else tip.style.display = 'none';
+  });
+  canvas.addEventListener('mousedown', e => { const p = pointer(e); dragging = nodes.find(n => Math.hypot(n.x-p.x, n.y-p.y) < n.r + 6) || null; });
+  window.addEventListener('mouseup', () => dragging = null);
+  canvas.addEventListener('mouseleave', () => { tip.style.display = 'none'; hover = null; });
+
+  function tick() {
+    for (let i = 0; i < nodes.length; i++) for (let j = i+1; j < nodes.length; j++) {
+      const a = nodes[i], b = nodes[j];
+      let dx = b.x-a.x, dy = b.y-a.y, d2 = dx*dx+dy*dy || 1, d = Math.sqrt(d2);
+      const f = Math.min(2200 / d2, 4);
+      dx /= d; dy /= d;
+      a.vx -= dx*f; a.vy -= dy*f; b.vx += dx*f; b.vy += dy*f;
+    }
+    for (const e of edges) {
+      const dx = e.b.x-e.a.x, dy = e.b.y-e.a.y, d = Math.hypot(dx,dy) || 1;
+      const rest = e.type === 'SUPERSEDES' ? 150 : 95;
+      const f = (d - rest) * 0.004;
+      e.a.vx += dx/d*f*2; e.a.vy += dy/d*f*2; e.b.vx -= dx/d*f*2; e.b.vy -= dy/d*f*2;
+    }
+    for (const n of nodes) {
+      n.vx += (W/2 - n.x) * 0.0012; n.vy += (H/2 - n.y) * 0.0018;
+      n.vx *= 0.86; n.vy *= 0.86;
+      if (n !== dragging) { n.x += n.vx; n.y += n.vy; }
+      n.x = Math.max(24, Math.min(W-24, n.x)); n.y = Math.max(24, Math.min(H-24, n.y));
+    }
+  }
+  function draw() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    for (const e of edges) {
+      const hot = e.type === 'SUPERSEDES';
+      ctx.strokeStyle = hot ? '#ef6351' : '#2a3038';
+      ctx.lineWidth = hot ? 2.2 : 1.1;
+      ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke();
+      if (hot) {
+        const midx = (e.a.x+e.b.x)/2, midy = (e.a.y+e.b.y)/2;
+        ctx.fillStyle = '#ef6351'; ctx.font = '600 10px ui-monospace, monospace';
+        ctx.fillText('SUPERSEDES', midx + 6, midy - 4);
+      }
+    }
+    for (const n of nodes) {
+      const c = COLORS[n.label] || '#888';
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, 7);
+      ctx.fillStyle = c + (hover === n ? 'ff' : 'cc'); ctx.fill();
+      ctx.strokeStyle = '#0b0d10'; ctx.lineWidth = 2; ctx.stroke();
+      const lbl = name(n);
+      if (lbl) {
+        ctx.fillStyle = '#e8eaed'; ctx.font = '600 11.5px -apple-system, sans-serif';
+        ctx.textAlign = 'center'; ctx.fillText(lbl, n.x, n.y - n.r - 7);
+      }
+    }
+  }
+  (function loop() { tick(); draw(); requestAnimationFrame(loop); })();
+});
+</script>
+</body>
+</html>

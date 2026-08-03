@@ -1,0 +1,31 @@
+{
+  "statements": [
+    {
+      "segment_id": "m1-s06",
+      "speaker": "Marco",
+      "topic": "auth service OAuth2 migration",
+      "issue_slug": "oauth",
+      "issue_number": null,
+      "claim": "Migrate the auth service to OAuth2 using Auth0; Marco owns the migration; target Aug 20",
+      "kind": "decision"
+    },
+    {
+      "segment_id": "m1-s09",
+      "speaker": "Priya",
+      "topic": "cache layer",
+      "issue_slug": "cache",
+      "issue_number": null,
+      "claim": "Use a Redis cache for transcript ingestion; Sam owns it; target Aug 10",
+      "kind": "decision"
+    },
+    {
+      "segment_id": "m1-s13",
+      "speaker": "Chen",
+      "topic": "mobile offline mode",
+      "issue_slug": "offline",
+      "issue_number": null,
+      "claim": "Chen is drafting the offline mode spec this week and will bring it to the team for review before any build work starts",
+      "kind": "update"
+    }
+  ]
+}

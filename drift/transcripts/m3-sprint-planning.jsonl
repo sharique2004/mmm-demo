@@ -1,0 +1,14 @@
+{"type":"meta","meeting_id":"m3","title":"Sprint Planning","date":"2026-08-03"}
+{"type":"segment","segment_id":"m3-s01","ts":"00:00:06","speaker":"Priya","text":"Okay, sprint planning. Full agenda today: two course corrections and one green light. Let's not make this a two-hour meeting."}
+{"type":"segment","segment_id":"m3-s02","ts":"00:00:19","speaker":"Sam","text":"Course corrections, plural? That's ominous."}
+{"type":"segment","segment_id":"m3-s03","ts":"00:00:34","speaker":"Priya","text":"It's data, not drama. Sam, give them the cache numbers first."}
+{"type":"segment","segment_id":"m3-s04","ts":"00:01:02","speaker":"Sam","text":"So, the benchmark surprised me. I replayed a full week of ingestion traffic, and the hot set is about sixty megabytes. Sixty. Redis handles it fine, but we'd be operating an entire extra service to cache something that fits in process memory."}
+{"type":"segment","segment_id":"m3-s05","ts":"00:02:10","speaker":"Priya","text":"Right. So here's the call: Redis is overkill for v1 — we're going with an in-memory LRU instead. I'm taking the cache work off Sam's plate so he can help Marco, and the new target is August 14."}
+{"type":"segment","segment_id":"m3-s06","ts":"00:02:41","speaker":"Sam","text":"Honestly? Relieved. One less service on my pager. I'll hand the branch over by Wednesday."}
+{"type":"segment","segment_id":"m3-s07","ts":"00:02:55","speaker":"Chen","text":"Hold on — which ticket is that, the ingestion one? The add-cache-layer one?"}
+{"type":"segment","segment_id":"m3-s08","ts":"00:03:08","speaker":"Priya","text":"That's the one, the cache layer ticket. I'll update it after this. Okay, Marco — your turn. The auth news."}
+{"type":"segment","segment_id":"m3-s09","ts":"00:03:56","speaker":"Marco","text":"Auth0 finally sent the enterprise quote, and it's four times what we budgeted. Four. Times. So we're dropping Auth0 and going with Clerk — same OAuth2 flows at a fraction of the price — and the cutover moves to September 1."}
+{"type":"segment","segment_id":"m3-s10","ts":"00:04:44","speaker":"Sam","text":"Do they have parity on the enterprise SSO piece? That was the whole reason we—"}
+{"type":"segment","segment_id":"m3-s11","ts":"00:04:58","speaker":"Marco","text":"They do. I ran our whole claims-mapping doc against their API last night. We lose nothing except the invoice."}
+{"type":"segment","segment_id":"m3-s12","ts":"00:05:47","speaker":"Chen","text":"Last thing — the offline spec I've been drafting since kickoff is done. Sync strategy, conflict handling, storage budget, the lot. It's in the shared drive and Sam and Marco already left comments."}
+{"type":"segment","segment_id":"m3-s13","ts":"00:06:52","speaker":"Priya","text":"I read it this morning, and it's exactly what we scoped at kickoff. The spec is approved as written — offline mode build starts next sprint with Chen leading. No change to anything we agreed in July."}
