@@ -1,0 +1,14 @@
+/* adjourn-test probe fixture — safe to delete */
+.join-button {
+  background: #2ecc71;
+  color: #ffffff;
+  border-radius: 6px;
+}
+
+.join-button:hover {
+  background: #27ae60;
+}
+
+.sidebar {
+  padding: 12px;
+}
